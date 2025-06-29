@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <script src="https://fpyf8.com/88/tag.min.js" data-zone="154477" async data-cfasync="false"></script>
-
-<title>Video Player with Download Option</title>
+  
+<title>Video Player with External Link & Download</title>
 <style>
   body {
     background-color: #f0f0f0;
@@ -16,7 +15,7 @@
     margin: 0;
     font-family: Arial, sans-serif;
     padding-top: 30px;
-    padding-bottom: 50px; /* Added padding for space at the bottom */
+    padding-bottom: 50px;
   }
 
   .video-player-container {
@@ -30,34 +29,20 @@
     margin-bottom: 20px;
   }
 
-  .video-placeholder {
+  /* This is the actual HTML5 video element */
+  .video-player-container video {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Uncomment object-fit: cover if your video's aspect ratio might differ and you want it to fill */
+    /* object-fit: cover; */
   }
 
-  .play-button {
-    font-size: 80px;
-    color: white;
-    border: 4px solid white;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-
-  .play-button::before {
-    content: '▶';
-    margin-left: 10px;
+  /* Hide the play button placeholder if using actual video controls */
+  .video-placeholder {
+    display: none; /* Hide placeholder when using actual video tag */
   }
 
   .controls-bar {
@@ -74,13 +59,15 @@
     box-sizing: border-box;
     color: white;
     font-size: 14px;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
+    /* You might want to remove transform and transition if using native video controls */
+    /* transform: translateY(100%); */
+    /* transition: transform 0.3s ease-in-out; */
   }
 
-  .video-player-container:hover .controls-bar {
+  /* If you want custom controls to appear on hover, you'd need JS to manage the <video> tag's play/pause */
+  /* .video-player-container:hover .controls-bar {
     transform: translateY(0);
-  }
+  } */
 
   .controls-bar .left-controls,
   .controls-bar .right-controls {
@@ -118,7 +105,7 @@
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     box-sizing: border-box;
-    margin-bottom: 20px; /* Space below the info container */
+    margin-bottom: 20px;
   }
 
   .video-title {
@@ -146,49 +133,34 @@
     font-size: 16px;
     line-height: 1.6;
     color: #444;
-    margin-bottom: 20px; /* Space before the download button */
+    margin-bottom: 20px;
   }
 
   .download-button {
-    display: inline-block; /* Make it behave like a block but allow other content next to it */
+    display: inline-block;
     padding: 10px 20px;
-    background-color: #28a745; /* Green color for download */
+    background-color: #28a745;
     color: white;
-    text-decoration: none; /* Remove underline from link */
+    text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
     transition: background-color 0.3s ease;
   }
 
   .download-button:hover {
-    background-color: #218838; /* Darker green on hover */
+    background-color: #218838;
   }
 </style>
 </head>
 <body>
 
 <div class="video-player-container">
-  <div class="video-placeholder">
-    <div class="play-button"></div>
+  <video controls autoplay muted>
+    <source src="https://otieu.com/4/9503975.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
   </div>
-  <div class="controls-bar">
-    <div class="left-controls">
-      <span>▶</span>
-      <span>❚❚</span>
-      <span>⏮</span>
-      <span>⏭</span>
-    </div>
-    <div class="progress-bar-container">
-      <div class="progress-bar"></div>
-    </div>
-    <div class="right-controls">
-      <span>17:28 / 42:00</span>
-      <span>🔊</span>
-      <span>⚙️</span>
-      <span>📺</span>
-    </div>
-  </div>
-</div>
 
 <div class="video-info-container">
   <h1 class="video-title">My Awesome Video Title Here</h1>
@@ -201,159 +173,9 @@
     This is a detailed description of the video. It explains the content and provides context.
     You can also include links or other relevant information here.
   </p>
-  <a href="path/to/your/video-file.mp4" download class="download-button">
+  <a href="https://otieu.com/4/9503975" download="My Awesome Video.mp4" class="download-button">
     Download Video
   </a>
-  </div>
-
-</body>
-</html>
-<title>All Videos with Download</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 20px;
-  }
-
-  .page-title {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-  }
-
-  .video-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
-    gap: 25px; /* Space between video cards */
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .video-card {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    overflow: hidden; /* Ensures image/video doesn't spill out */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .video-card .thumbnail-placeholder {
-    width: 100%;
-    padding-top: 56.25%; /* 16:9 aspect ratio */
-    background-color: #ccc; /* Placeholder for thumbnail */
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #666;
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .video-card .thumbnail-placeholder img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures image covers the area */
-  }
-
-  .video-card .info {
-    padding: 15px;
-    flex-grow: 1; /* Allows info section to grow and fill space */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .video-card .video-title-gallery {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #333;
-    min-height: 45px; /* Ensure space for 2 lines of title */
-  }
-
-  .video-card .video-author-gallery {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
-  }
-
-  .video-card .download-button-gallery {
-    display: block; /* Make button full width of card content */
-    width: calc(100% - 30px); /* Adjust for padding */
-    padding: 10px 15px;
-    background-color: #007bff; /* Blue for call to action */
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    margin-top: 10px; /* Space above button */
-  }
-
-  .video-card .download-button-gallery:hover {
-    background-color: #0056b3;
-  }
-</style>
-</head>
-<body>
-
-<h1 class="page-title">All Available Videos</h1>
-
-<div class="video-gallery">
-
-  <div class="video-card">
-    <div class="thumbnail-placeholder">
-      Video 1 Thumbnail
-    </div>
-    <div class="info">
-      <div>
-        <h2 class="video-title-gallery">Exciting Adventure Highlights</h2>
-        <p class="video-author-gallery">By: Explorer Max</p>
-      </div>
-      <a href="path/to/video1.mp4" download class="download-button-gallery">
-        Download Video 1
-      </a>
-    </div>
-  </div>
-
-  <div class="video-card">
-    <div class="thumbnail-placeholder">
-      Video 2 Thumbnail
-    </div>
-    <div class="info">
-      <div>
-        <h2 class="video-title-gallery">Cooking Delicious Recipes</h2>
-        <p class="video-author-gallery">By: Chef Bites</p>
-      </div>
-      <a href="path/to/video2.mp4" download class="download-button-gallery">
-        Download Video 2
-      </a>
-    </div>
-  </div>
-
-  <div class="video-card">
-    <div class="thumbnail-placeholder">
-      Video 3 Thumbnail
-    </div>
-    <div class="info">
-      <div>
-        <h2 class="video-title-gallery">Learn Web Development Basics</h2>
-        <p class="video-author-gallery">By: Code Academy</p>
-      </div>
-      <a href="path/to/video3.mp4" download class="download-button-gallery">
-        Download Video 3
-      </a>
-    </div>
-  </div>
-
   </div>
 
 </body>
