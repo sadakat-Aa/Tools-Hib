@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://fpyf8.com/88/tag.min.js" data-zone="154477" async data-cfasync="false"></script>
-    
-<title>Video Player</title>
+<title>Video Player with Download Option</title>
 <style>
   body {
     background-color: #f0f0f0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
     min-height: 100vh;
     margin: 0;
     font-family: Arial, sans-serif;
+    padding-top: 30px;
+    padding-bottom: 50px; /* Added padding for space at the bottom */
   }
 
   .video-player-container {
-    width: 800px; /* Adjust as needed */
+    width: 800px;
     max-width: 90%;
     background-color: black;
     position: relative;
-    padding-top: 56.25%; /* 16:9 aspect ratio (height / width * 100) */
+    padding-top: 56.25%; /* 16:9 aspect ratio */
     overflow: hidden;
-    border-radius: 8px; /* Optional: for rounded corners */
+    border-radius: 8px;
+    margin-bottom: 20px;
   }
 
   .video-placeholder {
@@ -47,12 +49,12 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
+    background-color: rgba(0, 0, 0, 0.4);
   }
 
   .play-button::before {
-    content: '▶'; /* Unicode play triangle */
-    margin-left: 10px; /* Adjust for centering triangle */
+    content: '▶';
+    margin-left: 10px;
   }
 
   .controls-bar {
@@ -69,12 +71,12 @@
     box-sizing: border-box;
     color: white;
     font-size: 14px;
-    transform: translateY(100%); /* Initially hidden */
+    transform: translateY(100%);
     transition: transform 0.3s ease-in-out;
   }
 
   .video-player-container:hover .controls-bar {
-    transform: translateY(0); /* Show on hover */
+    transform: translateY(0);
   }
 
   .controls-bar .left-controls,
@@ -99,9 +101,64 @@
 
   .progress-bar {
     height: 100%;
-    width: 40%; /* Example progress */
-    background-color: #007bff; /* Progress color */
+    width: 40%;
+    background-color: #007bff;
     border-radius: 2px;
+  }
+
+  /* Styles for video information */
+  .video-info-container {
+    width: 800px;
+    max-width: 90%;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    margin-bottom: 20px; /* Space below the info container */
+  }
+
+  .video-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  .video-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .video-meta .author {
+    font-weight: bold;
+    color: #007bff;
+  }
+
+  .video-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #444;
+    margin-bottom: 20px; /* Space before the download button */
+  }
+
+  .download-button {
+    display: inline-block; /* Make it behave like a block but allow other content next to it */
+    padding: 10px 20px;
+    background-color: #28a745; /* Green color for download */
+    color: white;
+    text-decoration: none; /* Remove underline from link */
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+
+  .download-button:hover {
+    background-color: #218838; /* Darker green on hover */
   }
 </style>
 </head>
@@ -113,15 +170,188 @@
   </div>
   <div class="controls-bar">
     <div class="left-controls">
-      <span>▶</span> <span>❚❚</span> <span>⏮</span> <span>⏭</span> </div>
+      <span>▶</span>
+      <span>❚❚</span>
+      <span>⏮</span>
+      <span>⏭</span>
+    </div>
     <div class="progress-bar-container">
       <div class="progress-bar"></div>
     </div>
     <div class="right-controls">
       <span>17:28 / 42:00</span>
-      <span>🔊</span> <span>⚙️</span> <span>📺</span> </div>
+      <span>🔊</span>
+      <span>⚙️</span>
+      <span>📺</span>
+    </div>
   </div>
 </div>
+
+<div class="video-info-container">
+  <h1 class="video-title">My Awesome Video Title Here</h1>
+  <div class="video-meta">
+    <span class="author">By: Video Creator Name</span>
+    <span class="views">1,234,567 views</span>
+    <span class="date">Uploaded: June 28, 2025</span>
+  </div>
+  <p class="video-description">
+    This is a detailed description of the video. It explains the content and provides context.
+    You can also include links or other relevant information here.
+  </p>
+  <a href="path/to/your/video-file.mp4" download class="download-button">
+    Download Video
+  </a>
+  </div>
+
+</body>
+</html>
+<title>All Videos with Download</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .page-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  .video-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+    gap: 25px; /* Space between video cards */
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .video-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden; /* Ensures image/video doesn't spill out */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .video-card .thumbnail-placeholder {
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    background-color: #ccc; /* Placeholder for thumbnail */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .video-card .thumbnail-placeholder img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures image covers the area */
+  }
+
+  .video-card .info {
+    padding: 15px;
+    flex-grow: 1; /* Allows info section to grow and fill space */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .video-card .video-title-gallery {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+    min-height: 45px; /* Ensure space for 2 lines of title */
+  }
+
+  .video-card .video-author-gallery {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  .video-card .download-button-gallery {
+    display: block; /* Make button full width of card content */
+    width: calc(100% - 30px); /* Adjust for padding */
+    padding: 10px 15px;
+    background-color: #007bff; /* Blue for call to action */
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 10px; /* Space above button */
+  }
+
+  .video-card .download-button-gallery:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">All Available Videos</h1>
+
+<div class="video-gallery">
+
+  <div class="video-card">
+    <div class="thumbnail-placeholder">
+      Video 1 Thumbnail
+    </div>
+    <div class="info">
+      <div>
+        <h2 class="video-title-gallery">Exciting Adventure Highlights</h2>
+        <p class="video-author-gallery">By: Explorer Max</p>
+      </div>
+      <a href="path/to/video1.mp4" download class="download-button-gallery">
+        Download Video 1
+      </a>
+    </div>
+  </div>
+
+  <div class="video-card">
+    <div class="thumbnail-placeholder">
+      Video 2 Thumbnail
+    </div>
+    <div class="info">
+      <div>
+        <h2 class="video-title-gallery">Cooking Delicious Recipes</h2>
+        <p class="video-author-gallery">By: Chef Bites</p>
+      </div>
+      <a href="path/to/video2.mp4" download class="download-button-gallery">
+        Download Video 2
+      </a>
+    </div>
+  </div>
+
+  <div class="video-card">
+    <div class="thumbnail-placeholder">
+      Video 3 Thumbnail
+    </div>
+    <div class="info">
+      <div>
+        <h2 class="video-title-gallery">Learn Web Development Basics</h2>
+        <p class="video-author-gallery">By: Code Academy</p>
+      </div>
+      <a href="path/to/video3.mp4" download class="download-button-gallery">
+        Download Video 3
+      </a>
+    </div>
+  </div>
+
+  </div>
 
 </body>
 </html>
