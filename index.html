@@ -1,66 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Geo Location Tool</title>
+  <meta charset="UTF-8">
+  <title>Image Size & Geo Tool</title>
 </head>
 <body>
 
-  <h2>Geo Location Tool</h2>
+  <h2>📷 Image Size Tool + 📍 Geo Location</h2>
 
+  <!-- Image Upload -->
+  <label>Select Image:</label>
+  <input type="file" id="imageInput" accept="image/*" onchange="loadImage(event)"><br><br>
+
+  <!-- Display Image -->
+  <img id="previewImage" src="#" style="max-width: 300px; display: none;"><br><br>
+
+  <!-- Image Size -->
+  <label>Width (px):</label>
+  <input type="number" id="imgWidth" onchange="resizeImage()">
+  <label>Height (px):</label>
+  <input type="number" id="imgHeight" onchange="resizeImage()"><br><br>
+
+  <!-- Geo Buttons -->
   <button onclick="getLocation()">📍 Get Location</button>
-  <button onclick="addLocation()">➕ Add Location</button>
-  <button onclick="resetLocation()">🔄 Reset</button>
+  <button onclick="resetGeo()">🔄 Reset Geo</button>
 
-  <p id="output">Your location will appear here.</p>
+  <!-- Geo Output -->
+  <p id="geoOutput">Location not fetched yet.</p>
 
   <script>
-    let currentPosition = null;
+    let image = document.getElementById('previewImage');
+    let imgWidth = document.getElementById('imgWidth');
+    let imgHeight = document.getElementById('imgHeight');
+
+    function loadImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          image.src = e.target.result;
+          image.style.display = 'block';
+          image.onload = function() {
+            imgWidth.value = image.naturalWidth;
+            imgHeight.value = image.naturalHeight;
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function resizeImage() {
+      image.style.width = imgWidth.value + 'px';
+      image.style.height = imgHeight.value + 'px';
+    }
 
     function getLocation() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
+        navigator.geolocation.getCurrentPosition(function(position) {
+          document.getElementById('geoOutput').innerHTML = 
+            "Latitude: " + position.coords.latitude + 
+            "<br>Longitude: " + position.coords.longitude;
+        }, function(error) {
+          document.getElementById('geoOutput').innerText = "Error: " + error.message;
+        });
       } else {
-        document.getElementById("output").innerHTML = "Geolocation is not supported by this browser.";
+        document.getElementById('geoOutput').innerText = "Geolocation is not supported.";
       }
     }
 
-    function showPosition(position) {
-      currentPosition = position;
-      document.getElementById("output").innerHTML = 
-        "Latitude: " + position.coords.latitude + 
-        "<br>Longitude: " + position.coords.longitude;
-    }
-
-    function showError(error) {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          alert("User denied the request for Geolocation.");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          alert("Location information is unavailable.");
-          break;
-        case error.TIMEOUT:
-          alert("The request to get user location timed out.");
-          break;
-        case error.UNKNOWN_ERROR:
-          alert("An unknown error occurred.");
-          break;
-      }
-    }
-
-    function addLocation() {
-      if (currentPosition) {
-        alert("Location added!\nLat: " + currentPosition.coords.latitude + "\nLng: " + currentPosition.coords.longitude);
-      } else {
-        alert("Please get the location first.");
-      }
-    }
-
-    function resetLocation() {
-      currentPosition = null;
-      document.getElementById("output").innerHTML = "Your location has been reset.";
+    function resetGeo() {
+      document.getElementById('geoOutput').innerText = "Location not fetched yet.";
     }
   </script>
 
