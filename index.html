@@ -1,77 +1,273 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Image Size & Geo Tool</title>
-</head>
-<body>
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query } from 'firebase/firestore';
 
-  <h2>📷 Image Size Tool + 📍 Geo Location</h2>
+// Main App component
+const App = () => {
+    // State variables for Firebase services and user data
+    const [db, setDb] = useState(null);
+    const [auth, setAuth] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [tools, setTools] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  <!-- Image Upload -->
-  <label>Select Image:</label>
-  <input type="file" id="imageInput" accept="image/*" onchange="loadImage(event)"><br><br>
+    // Initialize Firebase and set up authentication
+    useEffect(() => {
+        const initializeFirebase = async () => {
+            try {
+                // Retrieve global Firebase config and app ID
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-  <!-- Display Image -->
-  <img id="previewImage" src="#" style="max-width: 300px; display: none;"><br><br>
+                // Initialize Firebase app
+                const app = initializeApp(firebaseConfig);
+                const firestoreDb = getFirestore(app);
+                const firebaseAuth = getAuth(app);
 
-  <!-- Image Size -->
-  <label>Width (px):</label>
-  <input type="number" id="imgWidth" onchange="resizeImage()">
-  <label>Height (px):</label>
-  <input type="number" id="imgHeight" onchange="resizeImage()"><br><br>
+                setDb(firestoreDb);
+                setAuth(firebaseAuth);
 
-  <!-- Geo Buttons -->
-  <button onclick="getLocation()">📍 Get Location</button>
-  <button onclick="resetGeo()">🔄 Reset Geo</button>
+                // Sign in with custom token or anonymously
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(firebaseAuth);
+                }
 
-  <!-- Geo Output -->
-  <p id="geoOutput">Location not fetched yet.</p>
+                // Listen for authentication state changes
+                onAuthStateChanged(firebaseAuth, (user) => {
+                    if (user) {
+                        setUserId(user.uid);
+                    } else {
+                        // If no user, generate a random ID (for anonymous access)
+                        setUserId(crypto.randomUUID());
+                    }
+                    setLoading(false); // Auth is ready
+                });
 
-  <script>
-    let image = document.getElementById('previewImage');
-    let imgWidth = document.getElementById('imgWidth');
-    let imgHeight = document.getElementById('imgHeight');
-
-    function loadImage(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          image.src = e.target.result;
-          image.style.display = 'block';
-          image.onload = function() {
-            imgWidth.value = image.naturalWidth;
-            imgHeight.value = image.naturalHeight;
-          };
+            } catch (err) {
+                console.error("Firebase initialization error:", err);
+                setError("Failed to initialize Firebase. Please try again.");
+                setLoading(false);
+            }
         };
-        reader.readAsDataURL(file);
-      }
+
+        initializeFirebase();
+    }, []); // Run once on component mount
+
+    // Fetch tools from Firestore when db and userId are available
+    useEffect(() => {
+        if (db && userId) {
+            const toolsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/tools`);
+            const q = query(toolsCollectionRef);
+
+            // Set up real-time listener for tools
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const fetchedTools = [];
+                snapshot.forEach((doc) => {
+                    fetchedTools.push({ id: doc.id, ...doc.data() });
+                });
+                setTools(fetchedTools);
+            }, (err) => {
+                console.error("Error fetching tools:", err);
+                setError("Failed to fetch tools. Please try refreshing.");
+            });
+
+            // Cleanup listener on component unmount
+            return () => unsubscribe();
+        }
+    }, [db, userId]); // Re-run when db or userId changes
+
+    // Function to add a new tool
+    const addTool = async (name, url) => {
+        if (!db || !userId) {
+            setError("Database not ready. Please wait.");
+            return;
+        }
+        if (!name || !url) {
+            setError("Tool name and URL cannot be empty.");
+            return;
+        }
+
+        try {
+            const toolsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/tools`);
+            await addDoc(toolsCollectionRef, { name, url, createdAt: new Date() });
+            setError(null); // Clear any previous error
+        } catch (err) {
+            console.error("Error adding tool:", err);
+            setError("Failed to add tool. Please try again.");
+        }
+    };
+
+    // Function to delete a tool
+    const deleteTool = async (id) => {
+        if (!db || !userId) {
+            setError("Database not ready. Please wait.");
+            return;
+        }
+        try {
+            const toolDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/tools`, id);
+            await deleteDoc(toolDocRef);
+            setError(null);
+        } catch (err) {
+            console.error("Error deleting tool:", err);
+            setError("Failed to delete tool. Please try again.");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+                <p>Loading Tools Hub...</p>
+            </div>
+        );
     }
 
-    function resizeImage() {
-      image.style.width = imgWidth.value + 'px';
-      image.style.height = imgHeight.value + 'px';
-    }
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-950 p-4 font-sans antialiased">
+            <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+                <header className="bg-gradient-to-r from-blue-600 to-purple-700 p-6 text-white text-center rounded-t-2xl shadow-md">
+                    <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
+                        My Awesome Tools Hub
+                    </h1>
+                    <p className="text-blue-100 text-lg">Your go-to place for all your favorite links!</p>
+                </header>
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          document.getElementById('geoOutput').innerHTML = 
-            "Latitude: " + position.coords.latitude + 
-            "<br>Longitude: " + position.coords.longitude;
-        }, function(error) {
-          document.getElementById('geoOutput').innerText = "Error: " + error.message;
-        });
-      } else {
-        document.getElementById('geoOutput').innerText = "Geolocation is not supported.";
-      }
-    }
+                <main className="p-6">
+                    {userId && (
+                        <div className="mb-6 bg-blue-50 dark:bg-gray-700 p-4 rounded-xl text-blue-800 dark:text-blue-200 text-sm md:text-base">
+                            <p className="font-semibold mb-1">Your User ID:</p>
+                            <p className="break-all">{userId}</p>
+                            <p className="mt-2 text-xs md:text-sm text-blue-600 dark:text-blue-300">
+                                (This ID identifies your saved tools. Share it with others if you want to collaborate on a public tools list, but this app currently saves tools privately.)
+                            </p>
+                        </div>
+                    )}
 
-    function resetGeo() {
-      document.getElementById('geoOutput').innerText = "Location not fetched yet.";
-    }
-  </script>
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-6" role="alert">
+                            <strong className="font-bold">Error:</strong>
+                            <span className="block sm:inline ml-2">{error}</span>
+                        </div>
+                    )}
 
-</body>
-</html>
+                    {/* Tool Form Component */}
+                    <ToolForm onAddTool={addTool} />
+
+                    {/* Tool List Component */}
+                    <ToolList tools={tools} onDeleteTool={deleteTool} />
+                </main>
+
+                <footer className="bg-gray-100 dark:bg-gray-900 p-4 text-center text-gray-600 dark:text-gray-400 text-sm rounded-b-2xl">
+                    <p>&copy; {new Date().getFullYear()} Tools Hub. All rights reserved.</p>
+                </footer>
+            </div>
+        </div>
+    );
+};
+
+// ToolForm Component
+const ToolForm = ({ onAddTool }) => {
+    const [name, setName] = useState('');
+    const [url, setUrl] = useState('');
+    const [formError, setFormError] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!name.trim() || !url.trim()) {
+            setFormError("Both name and URL are required!");
+            return;
+        }
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            setFormError("URL must start with http:// or https://");
+            return;
+        }
+        onAddTool(name.trim(), url.trim());
+        setName('');
+        setUrl('');
+        setFormError('');
+    };
+
+    return (
+        <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-bold mb-5 text-gray-800 dark:text-gray-100">Add New Tool</h2>
+            {formError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 text-sm" role="alert">
+                    <span className="block sm:inline">{formError}</span>
+                </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label htmlFor="toolName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tool Name</label>
+                    <input
+                        type="text"
+                        id="toolName"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g., Google Search"
+                        className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition duration-150 ease-in-out"
+                        required
+                    />
+                </div>
+                <div>
+                    <label htmlFor="toolUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tool URL</label>
+                    <input
+                        type="url"
+                        id="toolUrl"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="e.g., https://www.google.com"
+                        className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition duration-150 ease-in-out"
+                        required
+                    />
+                </div>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transform transition duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                    Add Tool
+                </button>
+            </form>
+        </div>
+    );
+};
+
+// ToolList Component
+const ToolList = ({ tools, onDeleteTool }) => {
+    return (
+        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-bold mb-5 text-gray-800 dark:text-gray-100">Your Tools</h2>
+            {tools.length === 0 ? (
+                <p className="text-gray-600 dark:text-gray-400 text-center py-4">No tools added yet. Add some above!</p>
+            ) : (
+                <ul className="space-y-4">
+                    {tools.map((tool) => (
+                        <li key={tool.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 transform transition duration-150 ease-in-out hover:scale-[1.01]">
+                            <a
+                                href={tool.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-grow text-blue-600 dark:text-blue-300 hover:underline font-medium text-lg truncate pr-2"
+                                title={tool.url}
+                            >
+                                {tool.name}
+                            </a>
+                            <button
+                                onClick={() => onDeleteTool(tool.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                aria-label={`Delete ${tool.name}`}
+                            >
+                                Delete
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+};
+
+export default App;
+
